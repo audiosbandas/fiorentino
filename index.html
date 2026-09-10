@@ -35,21 +35,12 @@ body{
     overflow-wrap:anywhere;
 }
 
-/* Contenedor de la lista de audios */
-#audios-container{
-    width:100%;
-    margin:0;
-    padding:0;
-}
 
-/* Iframe donde Apps Script genera la lista */
-#audios-frame{
-    width:100%;
-    height:20px;
-    border:0;
-    display:block;
-    overflow:hidden;
-}
+
+
+
+
+    
 
 /* Control de tamaño */
 #zoom-control{
@@ -265,71 +256,46 @@ Queda fuera de #content para no escalarse.
 
 <script>
 
-/*
-==================================================
-GOOGLE APPS SCRIPT
-==================================================
-*/
+<!-- CONTENEDOR EXCLUSIVO PARA LOS RESULTADOS DE DRIVE -->
+<div id="contenedor-audios-drive">
+  <h3>Lista de Archivos de Audio</h3>
+  <!-- Mensaje de carga inicial -->
+  <div id="estado-carga">Cargando archivos desde Google Drive...</div>
+  <!-- Aquí se inyectarán los hipervínculos automáticamente -->
+  <ul id="lista-audios" style="list-style: none; padding: 0;"></ul>
+</div>
 
-const API_URL =
-    "https://script.google.com/macros/s/AKfycbzP1dSNioOdO54r4Pg9V7M-yRTNtxyTGtxAss4CYa-eYBgHlOQfvmfmiUnE_nczc_17/exec";
-/*
-    "https://script.google.com/macros/s/AKfycbz4FOsShrLONlHcfFIF3eYIQo-XBKWhCB5M8aIUE1kcNTCj810F9WEIPtYRHF6zax4C/exec";
-*/
-
+<!-- SCRIPT DE INVOCACIÓN (COLOCAR ANTES DE CERRAR EL </body>) -->
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    // 1. Configura tus datos aquí
+    const ID_CARPETA = "TU_ID_DE_CARPETA_AQUÍ"; 
+    const URL_APPS_SCRIPT = "https://google.com";
     
-/*
-==================================================
-OBTENER folderId DESDE LA URL
+    // 2. Construir la URL final con el parámetro del ID de la carpeta
+    const urlInvocacion = `${URL_APPS_SCRIPT}?id=${ID_CARPETA}`;
+    
+    const listaAudios = document.getElementById("lista-audios");
+    const estadoCarga = document.getElementById("estado-carga");
 
-Ejemplo:
-
-https://audiosbandas.github.io/cron/
-?folderId=13D2UIdSrkHPImbrZSG7n1NWY3Ip7f14G
-==================================================
-*/
-
-const parametros =
-    new URLSearchParams(
-        window.location.search
-    );
-
-const folderId =
-    parametros.get("folderId");
-
-
-const frame =
-    document.getElementById(
-        "audios-frame"
-    );
-
-
-/*
-==================================================
-CARGAR LISTA DE AUDIOS
-
-No utilizamos fetch().
-No utilizamos JSONP.
-
-Apps Script genera directamente el HTML
-de la lista dentro del iframe.
-==================================================
-*/
-
-if (!folderId) {
-
-    frame.srcdoc =
-        "<p>No se especificó ninguna carpeta.</p>";
-
-} else {
-
-    frame.src =
-        API_URL +
-        "?folderId=" +
-        encodeURIComponent(folderId) +
-        "&format=html";
-
-}
+    // 3. Realizar la petición asíncrona (Fetch)
+    fetch(urlInvocacion)
+      .then(response => {
+        if (!response.ok) throw new Error("Error en la respuesta del servidor");
+        return response.text(); // Recibe el fragmento HTML generado por el script
+      })
+      .then(htmlResultado => {
+        // Ocultar mensaje de carga e inyectar el resultado directamente en el <ul>
+        estadoCarga.style.display = "none";
+        listaAudios.innerHTML = htmlResultado;
+      })
+      .catch(error => {
+        console.error("Error al obtener audios:", error);
+        estadoCarga.style.color = "red";
+        estadoCarga.innerHTML = "No se pudieron cargar los archivos de audio. Revisa la configuración.";
+      });
+  });
+</script>
 
 
 /*
@@ -497,7 +463,6 @@ INICIAR
 
 aplicarZoom(level);
 
-</script>
 
 </body>
 </html>
