@@ -1,0 +1,499 @@
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiorentino · HTML</title>
+
+<style>
+html,body{
+    margin:0;
+    padding:0;
+}
+
+body{
+    font-family:Arial,sans-serif;
+    overflow-x:hidden;
+}
+
+#content{
+    width:100%;
+    box-sizing:border-box;
+    padding:24px;
+    zoom:var(--zoom-factor,1);
+}
+
+#links{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+#links a{
+    overflow-wrap:anywhere;
+}
+
+/* Contenedor de la lista de audios */
+#audios-container{
+    width:100%;
+    margin:0;
+    padding:0;
+}
+
+/* Iframe donde Apps Script genera la lista */
+#audios-frame{
+    width:100%;
+    height:20px;
+    border:0;
+    display:block;
+    overflow:hidden;
+}
+
+/* Control de tamaño */
+#zoom-control{
+    position:fixed;
+    top:12px;
+    right:12px;
+    z-index:9999;
+
+    display:flex;
+    align-items:center;
+    gap:4px;
+
+    padding:5px;
+
+    background:rgba(255,255,255,.96);
+    border:1px solid #ccc;
+    border-radius:6px;
+
+    box-shadow:0 2px 8px rgba(0,0,0,.12);
+
+    font-size:14px;
+}
+
+#zoom-control button{
+    min-width:34px;
+    height:30px;
+    padding:0 7px;
+
+    border:1px solid #bbb;
+    border-radius:4px;
+
+    background:#f5f5f5;
+    color:#222;
+
+    font:inherit;
+    cursor:pointer;
+}
+
+#zoom-control button:hover{
+    background:#e9e9e9;
+}
+
+#zoom-control button:active{
+    background:#ddd;
+}
+
+#zoom-control button:disabled{
+    opacity:.45;
+    cursor:default;
+}
+
+#zoom-level{
+    min-width:48px;
+    text-align:center;
+    user-select:none;
+}
+
+/* Fallback para navegadores antiguos sin CSS zoom */
+@supports not (zoom:1){
+
+    #content{
+        transform-origin:top left;
+        transform:scale(var(--zoom-factor,1));
+        width:calc(100% / var(--zoom-factor,1));
+    }
+}
+
+@media(max-width:480px){
+
+    #zoom-control{
+        top:8px;
+        right:8px;
+    }
+
+    #content{
+        padding:16px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div id="content">
+
+    <div id="links">
+
+        <h2>Audios ENLACES Santi Fiorentino</h2>
+
+        <a>ÚLTIMO ENSAYO Audios:</a>
+
+        <a
+            href="https://drive.google.com/drive/folders/13D2UIdSrkHPImbrZSG7n1NWY3Ip7f14G"
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            Drive AUDIOS BANDAS @DRIVE / 2_CRON [Cron || proyectocron@gmail.com]
+        </a>
+
+        <br>
+
+        <div id="audios-container">
+
+            <iframe
+                id="audios-frame"
+                title="Archivos de audio"
+                scrolling="no"
+            ></iframe>
+
+        </div>
+
+        <br><br>
+
+        <a>Otros Audios:</a>
+
+        <h3>DRIVE ProyectoCron@DRIVE</h3>
+
+        <a
+            href="https://drive.google.com/drive/folders/1w9ougNPpPdFpR2eBS5K2GjBU9BuSn05q"
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            Ensayos proyectocron@DRIVE
+        </a>
+
+        <br>
+
+        <h3>DRIVE proyectocron2</h3>
+
+        <a>(Otros Audios):</a>
+
+        <a
+            href="https://drive.google.com/drive/folders/1WDGzUW0Fa16evcVXz9img-4j_Sm3jJ_5"
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            Ensayos proyectocron2@DRIVE
+        </a>
+
+        <br><br>
+
+        <h2>LinkTree</h2>
+
+        <a
+            href="https://linktr.ee/cron.oficial"
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            https://linktr.ee/cron.oficial
+        </a>
+
+        <br><br>
+
+        <h3>Backup</h3>
+
+        <a>Atom.bio</a>
+
+        <a
+            href="https://atom.bio/cron_oficial"
+            target="_blank"
+            rel="noopener noreferrer"
+        >
+            https://atom.bio/cron_oficial
+        </a>
+
+    </div>
+
+</div>
+
+
+<!--
+==================================================
+CONTROL DE TAMAÑO
+Queda fuera de #content para no escalarse.
+==================================================
+-->
+
+<div id="zoom-control" aria-label="Control de tamaño">
+
+    <button
+        id="zoom-reset"
+        type="button"
+        aria-label="Restablecer tamaño"
+    >
+        Reset
+    </button>
+
+    <button
+        id="zoom-out"
+        type="button"
+        aria-label="Reducir tamaño"
+    >
+        −
+    </button>
+
+    <span
+        id="zoom-level"
+        aria-label="Nivel de zoom"
+    >
+        100%
+    </span>
+
+    <button
+        id="zoom-in"
+        type="button"
+        aria-label="Aumentar tamaño"
+    >
+        +
+    </button>
+
+</div>
+
+
+<script>
+
+/*
+==================================================
+GOOGLE APPS SCRIPT
+==================================================
+*/
+
+const API_URL =
+    "https://script.google.com/macros/s/AKfycbzP1dSNioOdO54r4Pg9V7M-yRTNtxyTGtxAss4CYa-eYBgHlOQfvmfmiUnE_nczc_17/exec";
+
+
+/*
+==================================================
+OBTENER folderId DESDE LA URL
+
+Ejemplo:
+
+https://audiosbandas.github.io/cron/
+?folderId=13D2UIdSrkHPImbrZSG7n1NWY3Ip7f14G
+==================================================
+*/
+
+const parametros =
+    new URLSearchParams(
+        window.location.search
+    );
+
+const folderId =
+    parametros.get("folderId");
+
+
+const frame =
+    document.getElementById(
+        "audios-frame"
+    );
+
+
+/*
+==================================================
+CARGAR LISTA DE AUDIOS
+
+No utilizamos fetch().
+No utilizamos JSONP.
+
+Apps Script genera directamente el HTML
+de la lista dentro del iframe.
+==================================================
+*/
+
+if (!folderId) {
+
+    frame.srcdoc =
+        "<p>No se especificó ninguna carpeta.</p>";
+
+} else {
+
+    frame.src =
+        API_URL +
+        "?folderId=" +
+        encodeURIComponent(folderId) +
+        "&format=html";
+
+}
+
+
+/*
+==================================================
+CONTROL DE ZOOM
+==================================================
+*/
+
+const MIN = 70;
+const MAX = 160;
+const STEP = 10;
+const DEFAULT = 100;
+
+const STORAGE_KEY =
+    "enlaces-zoom";
+
+
+const content =
+    document.getElementById(
+        "content"
+    );
+
+const zoomLabel =
+    document.getElementById(
+        "zoom-level"
+    );
+
+const zoomOut =
+    document.getElementById(
+        "zoom-out"
+    );
+
+const zoomIn =
+    document.getElementById(
+        "zoom-in"
+    );
+
+const zoomReset =
+    document.getElementById(
+        "zoom-reset"
+    );
+
+
+let level = DEFAULT;
+
+
+try {
+
+    const saved =
+        Number(
+            localStorage.getItem(
+                STORAGE_KEY
+            )
+        );
+
+    if (
+        Number.isFinite(saved) &&
+        saved >= MIN &&
+        saved <= MAX &&
+        saved % STEP === 0
+    ) {
+
+        level = saved;
+
+    }
+
+} catch(e) {}
+
+
+/*
+==================================================
+APLICAR ZOOM
+==================================================
+*/
+
+function aplicarZoom(valor) {
+
+    level =
+        Math.min(
+            MAX,
+            Math.max(
+                MIN,
+                valor
+            )
+        );
+
+
+    content.style.setProperty(
+        "--zoom-factor",
+        level / 100
+    );
+
+
+    zoomLabel.textContent =
+        level + "%";
+
+
+    zoomOut.disabled =
+        level <= MIN;
+
+
+    zoomIn.disabled =
+        level >= MAX;
+
+
+    try {
+
+        localStorage.setItem(
+            STORAGE_KEY,
+            String(level)
+        );
+
+    } catch(e) {}
+
+}
+
+
+/*
+==================================================
+BOTONES
+==================================================
+*/
+
+zoomOut.addEventListener(
+    "click",
+    function(){
+
+        aplicarZoom(
+            level - STEP
+        );
+
+    }
+);
+
+
+zoomIn.addEventListener(
+    "click",
+    function(){
+
+        aplicarZoom(
+            level + STEP
+        );
+
+    }
+);
+
+
+zoomReset.addEventListener(
+    "click",
+    function(){
+
+        aplicarZoom(
+            DEFAULT
+        );
+
+    }
+);
+
+
+/*
+==================================================
+INICIAR
+==================================================
+*/
+
+aplicarZoom(level);
+
+</script>
+
+</body>
+</html>
