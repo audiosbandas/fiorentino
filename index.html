@@ -269,11 +269,18 @@ Queda fuera de #content para no escalarse.
 <script>
   document.addEventListener("DOMContentLoaded", function() {
     // 1. Configura tus datos aquí
-    const ID_CARPETA = "TU_ID_DE_CARPETA_AQUÍ"; 
-    const URL_APPS_SCRIPT = "https://google.com";
+    /* const ID_CARPETA = "TU_ID_DE_CARPETA_AQUÍ";
+    */
+    const ID_CARPETA = "13D2UIdSrkHPImbrZSG7n1NWY3Ip7f14G";
+      
+    /* const URL_APPS_SCRIPT = "https://google.com";
+    */
+    const URL_APPS_SCRIPT = "https://script.google.com/macros/s/AKfycbzP1dSNioOdO54r4Pg9V7M-yRTNtxyTGtxAss4CYa-eYBgHlOQfvmfmiUnE_nczc_17/exec";
+
+      
     
     // 2. Construir la URL final con el parámetro del ID de la carpeta
-    const urlInvocacion = `${URL_APPS_SCRIPT}?id=${ID_CARPETA}`;
+    const urlInvocacion = `${URL_APPS_SCRIPT}?folderId=${ID_CARPETA}`;
     
     const listaAudios = document.getElementById("lista-audios");
     const estadoCarga = document.getElementById("estado-carga");
